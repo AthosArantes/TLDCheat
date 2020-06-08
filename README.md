@@ -1,6 +1,6 @@
 # The Long Dark Cheat
-A small cheat for the game **The Long Dark** compatible with steam version v1.78.63122;
-Using cheats will degrade gameplay experience.
+A small cheat for the game **The Long Dark** compatible with steam version v1.78.63122;\
+Using cheats will degrade gameplay experience.\
 Use at own risk.
 
 ## Features:
@@ -47,5 +47,5 @@ First you will need to compile it (The cheat was compiled using Visual Studio 20
 - Disabling all cheats (by pressing **End**) will remove all hooks. The only way to use cheats again is by injecting the .dll again;
 
 ## Libraries used:
-[distormx](https://github.com/gdabah/distormx)
+[distormx](https://github.com/gdabah/distormx)\
 [fmt](https://github.com/fmtlib/fmt)
