@@ -6,8 +6,6 @@
 
 std::unique_ptr<Game::Cheat> gCheat;
 
-const int of = offsetof(Game::Panel_Container, m_HasRequestedObjectiveUpdate);
-
 namespace Game
 {
 	Cheat::Cheat() = default;
