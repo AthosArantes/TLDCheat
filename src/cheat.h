@@ -54,6 +54,7 @@ namespace Game
 		bool unlimitedBackpack {};
 		bool unlimitedStorage {};
 		bool unlimitedLampFuel {};
+		bool placeAnywhere {};
 		float playerSpeed {1.0f};
 
 		// Panel_Inventory is a static member of InterfaceManager,
@@ -70,6 +71,7 @@ namespace Game
 		function<bool(KeyCode)> _Input_GetKeyUp; // bool Input::GetKeyUp(KeyCode key)
 		function<bool(KeyCode)> _Input_GetKeyDown; // bool Input::GetKeyDown(KeyCode key)
 		method<GameManager, void()> _GameManager_UpdateNotPaused; // void GameManager::UpdateNotPaused()
+		method<PlayerManager, MeshLocationCategory()> _PlayerManager_DoPositionCheck; // MeshLocationCategory PlayerManager::DoPositionCheck()
 		method<Panel_HUD, void()> _Panel_HUD_Update; // void Panel_HUD::Update()
 		method<Panel_HUD, void(String*)> _Panel_HUD_ShowSubtitlesForced; // void Panel_HUD::ShowSubtitlesForced(string text)
 		method<Panel_HUD, void(float)> _Panel_HUD_HideSubtitles; // void Panel_HUD::HideSubtitles(float seconds_to_hide)

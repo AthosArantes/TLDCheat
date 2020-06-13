@@ -28,6 +28,7 @@ First you will need to compile it (The cheat was compiled using Visual Studio 20
 |Toggle unlimited backpack|KeyPad 4|
 |Toggle unlimited storage|KeyPad 5|
 |Toggle unlimited lamp fuel|KeyPad 6|
+|Toggle place item anywhere|KeyPad 7|
 |Increase movement speed|KeyPad +|
 |Decrease movement speed|KeyPad -|
 |Disable ALL cheats|End|

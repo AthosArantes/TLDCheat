@@ -26,6 +26,7 @@ namespace Game
 		_Input_GetKeyUp = (char*)hmodule + 0x1092A50;
 		_Input_GetKeyDown = (char*)hmodule + 0x1092AA0;
 		_GameManager_UpdateNotPaused = (char*)hmodule + 0x15CA200;
+		_PlayerManager_DoPositionCheck = (char*)hmodule + 0x15799A0;
 		_Panel_HUD_Update = (char*)hmodule + 0x16ABED0;
 		_Panel_HUD_ShowSubtitlesForced = (char*)hmodule + 0x16B05B0;
 		_Panel_HUD_HideSubtitles = (char*)hmodule + 0x16B09B0;
@@ -123,6 +124,17 @@ namespace Game
 			return gCheat->playerSpeed;
 		}));
 
+		// Place item anywhere
+		distormx_hook((void**)&_PlayerManager_DoPositionCheck, (void*)static_cast<MeshLocationCategory(*)(PlayerManager*)>([](PlayerManager* player_manager) -> MeshLocationCategory
+		{
+			MeshLocationCategory status = gCheat->_PlayerManager_DoPositionCheck(player_manager);
+			if (gCheat->placeAnywhere)
+			{
+				status = MeshLocationCategory::Valid;
+			}
+			return status;
+		}));
+
 		// ==========================================================================================
 		// The hooks below are exclusively used to retrieve specific object pointers
 
@@ -148,6 +160,7 @@ namespace Game
 		distormx_unhook(&_Inventory_ProcessItems);
 		distormx_unhook(&_Utils_GetTotalWeightKG);
 		distormx_unhook(&_PlayerMovement_GetSnowDepthMovementMultiplier);
+		distormx_unhook(&_PlayerManager_DoPositionCheck);
 		distormx_unhook(&_Panel_HUD_Update);
 		distormx_unhook(&_Panel_Inventory_Update);
 		distormx_destroy();
@@ -180,7 +193,6 @@ namespace Game
 			{
 				ChangeInventoryItem(InventoryItemAction::Repair);
 			}
-
 			return;
 		}
 
@@ -245,6 +257,13 @@ namespace Game
 		{
 			unlimitedLampFuel = !unlimitedLampFuel;
 			ShowMessage(unlimitedLampFuel ? u8"Unlimited lamp fuel activated" : u8"Unlimited lamp fuel deactivated");
+		}
+
+		// Place anywhere cheat
+		if (GetKeyDown(KeyCode::Keypad7))
+		{
+			placeAnywhere = !placeAnywhere;
+			ShowMessage(placeAnywhere ? u8"Place item anywhere activated" : u8"Place item anywhere deactivated");
 		}
 	}
 
@@ -327,6 +346,7 @@ namespace Game
 			case InventoryItemAction::Repair:
 			{
 				item->m_CurrentHP = item->m_MaxHP;
+				item->m_WornOut = false;
 				_Panel_Inventory_MarkDirty(panelInventory);
 				break;
 			}

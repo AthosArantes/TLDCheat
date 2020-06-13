@@ -409,6 +409,25 @@ namespace Game
 		NonPotable = 1
 	};
 
+	enum class MeshLocationCategory : uint32_t
+	{
+		Valid,
+		ValidOutOfRange,
+		ValidOutOfRangeFar,
+		Invalid,
+		InvalidNotWithinRequiredVolume,
+		InvalidTooWindy,
+		InvalidOnWood,
+		InvalidOnStraw,
+		InvalidMustBeOnSnow,
+		InvalidOnTopOfAnotherDecal,
+		InvalidNoPaintCans,
+		InvalidTooClose,
+		InvalidInAir,
+		InvalidIndoors,
+		InvalidTooManyPlacedDecals
+	};
+
 	// ==========================================================================================
 
 	template <typename T>
