@@ -308,35 +308,37 @@ namespace Game
 			return;
 		}
 
+		bool shiftDown = GetKey(KeyCode::LeftShift) || GetKey(KeyCode::RightShift);
+
 		switch (action)
 		{
 			case InventoryItemAction::Increment: [[fallthrough]];
 			case InventoryItemAction::Decrement:
 			{
-				int32_t inverse = (action == InventoryItemAction::Decrement) ? -1 : 1;
+				int32_t sign = (action == InventoryItemAction::Decrement) ? -1 : 1;
 
 				if (StackableItem* stackable = item->m_StackableItem)
 				{
 					int32_t& units = stackable->m_Units;
-					units += (GetKey(KeyCode::LeftShift) ? 5 : 1) * inverse;
+					units += (shiftDown ? 5 : 1) * sign;
 					units = std::max(units, 0);
 				}
 				else if (WaterSupply* water = item->m_WaterSupply)
 				{
 					float& amount = water->m_VolumeInLiters;
-					amount += (GetKey(KeyCode::LeftShift) ? 1.0f : 0.5f) * inverse;
+					amount += (shiftDown ? 1.0f : 0.5f) * sign;
 					amount = std::max(amount, 0.0f);
 				}
 				else if (LiquidItem* liquid = item->m_LiquidItem)
 				{
 					float& amount = liquid->m_LiquidLiters;
-					amount += (GetKey(KeyCode::LeftShift) ? 0.5f : 0.1f) * inverse;
+					amount += (shiftDown ? 0.5f : 0.1f) * sign;
 					amount = std::clamp(amount, 0.0f, liquid->m_LiquidCapacityLiters);
 				}
 				else if (KeroseneLampItem* lamp = item->m_KeroseneLampItem)
 				{
 					float& fuel = lamp->m_CurrentFuelLiters;
-					fuel += (GetKey(KeyCode::LeftShift) ? 0.5f : 0.1f) * inverse;
+					fuel += (shiftDown ? 0.5f : 0.1f) * sign;
 					fuel = std::clamp(fuel, 0.0f, lamp->m_MaxFuelLiters);
 				}
 
