@@ -13,6 +13,8 @@ Use at own risk.
 - Unlimited lamp fuel;
 - Increase/Decrease item units in player inventory (Also works with water, liquids and lamp);
 - Repair item in player inventory;
+- Place item anywhere;
+- Full map survey;
 - Speed hack (Up to 10x);
 
 ## How to use:
@@ -29,6 +31,7 @@ First you will need to compile it (The cheat was compiled using Visual Studio 20
 |Toggle unlimited storage|KeyPad 5|
 |Toggle unlimited lamp fuel|KeyPad 6|
 |Toggle place item anywhere|KeyPad 7|
+|Toggle full map survey|KeyPad 8|
 |Increase movement speed|KeyPad +|
 |Decrease movement speed|KeyPad -|
 |Disable ALL cheats|End|

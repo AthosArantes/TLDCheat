@@ -55,14 +55,17 @@ namespace Game
 		bool unlimitedStorage {};
 		bool unlimitedLampFuel {};
 		bool placeAnywhere {};
+		bool fullMapSurvey {};
 		float playerSpeed {1.0f};
 
 		// Panel_Inventory is a static member of InterfaceManager,
 		// since the game doesn't have a static function to retrieve the Panel_Inventory instance
 		// we have to hook Panel_Inventory::Update() and update this pointer.
+		// Same thing for other panels.
 
 		Panel_Inventory* panelInventory {};
 		Panel_HUD* panelHUD {};
+		Panel_Map* panelMap {};
 
 		// ------------------------------------------------------------------------------------------
 		function<Encoding* ()> _Encoding_get_UTF8; // Encoding* Encoding::UTF8()
@@ -72,9 +75,6 @@ namespace Game
 		function<bool(KeyCode)> _Input_GetKeyDown; // bool Input::GetKeyDown(KeyCode key)
 		method<GameManager, void()> _GameManager_UpdateNotPaused; // void GameManager::UpdateNotPaused()
 		method<PlayerManager, MeshLocationCategory()> _PlayerManager_DoPositionCheck; // MeshLocationCategory PlayerManager::DoPositionCheck()
-		method<Panel_HUD, void()> _Panel_HUD_Update; // void Panel_HUD::Update()
-		method<Panel_HUD, void(String*)> _Panel_HUD_ShowSubtitlesForced; // void Panel_HUD::ShowSubtitlesForced(string text)
-		method<Panel_HUD, void(float)> _Panel_HUD_HideSubtitles; // void Panel_HUD::HideSubtitles(float seconds_to_hide)
 		method<HUDManager, bool()> _HUDManager_ShouldHideCrossHairs; // bool HUDManager::ShouldHideCrossHairs()
 		method<BodyDamage, int32_t(BodyPart, BodyDamage::Weapon)> _BodyDamage_GetChanceKill; // int BodyDamage::GetChanceKill(BodyPart body_part, BodyDamage::Weapon weapon)
 		method<Inventory, void()> _Inventory_ProcessItems; // void Inventory::ProcessItems()
@@ -92,5 +92,10 @@ namespace Game
 		method<Panel_Inventory, void()> _Panel_Inventory_MarkDirty; // void Panel_Inventory::MarkDirty()
 		method<Panel_Inventory, bool()> _Panel_Inventory_IsEnabled; // bool Panel_Inventory::IsEnabled()()
 		method<Panel_Inventory, GearItem* ()> _Panel_Inventory_GetCurrentlySelectedGearItem; // GearItem* Panel_Inventory::GetCurrentlySelectedGearItem()
+		method<Panel_HUD, void()> _Panel_HUD_Update; // void Panel_HUD::Update()
+		method<Panel_HUD, void(String*)> _Panel_HUD_ShowSubtitlesForced; // void Panel_HUD::ShowSubtitlesForced(string text)
+		method<Panel_HUD, void(float)> _Panel_HUD_HideSubtitles; // void Panel_HUD::HideSubtitles(float seconds_to_hide)
+		method<Panel_Map, void()> _Panel_Map_Update; // void Panel_Map::Update()
+		method<Panel_Map, void(SurveyType)> _Panel_Map_DoDetailSurvey; // void Panel_Map::DoDetailSurvey(SurveyType survey_type)
 	};
 }

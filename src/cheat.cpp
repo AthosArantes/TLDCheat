@@ -27,9 +27,6 @@ namespace Game
 		_Input_GetKeyDown = (char*)hmodule + 0x1092AA0;
 		_GameManager_UpdateNotPaused = (char*)hmodule + 0x15CA200;
 		_PlayerManager_DoPositionCheck = (char*)hmodule + 0x15799A0;
-		_Panel_HUD_Update = (char*)hmodule + 0x16ABED0;
-		_Panel_HUD_ShowSubtitlesForced = (char*)hmodule + 0x16B05B0;
-		_Panel_HUD_HideSubtitles = (char*)hmodule + 0x16B09B0;
 		_HUDManager_ShouldHideCrossHairs = (char*)hmodule + 0x1A86840;
 		_BodyDamage_GetChanceKill = (char*)hmodule + 0x1CAA880;
 		_Inventory_ProcessItems = (char*)hmodule + 0x17EC3C0;
@@ -47,6 +44,11 @@ namespace Game
 		_Panel_Inventory_MarkDirty = (char*)hmodule + 0x16CBCB0;
 		_Panel_Inventory_IsEnabled = (char*)hmodule + 0x16CBCF0;
 		_Panel_Inventory_GetCurrentlySelectedGearItem = (char*)hmodule + 0x16CFD10;
+		_Panel_HUD_Update = (char*)hmodule + 0x16ABED0;
+		_Panel_HUD_ShowSubtitlesForced = (char*)hmodule + 0x16B05B0;
+		_Panel_HUD_HideSubtitles = (char*)hmodule + 0x16B09B0;
+		_Panel_Map_Update = (char*)hmodule + 0x1795170;
+		_Panel_Map_DoDetailSurvey = (char*)hmodule + 0x1797950;
 	}
 
 	void Cheat::InstallHooks()
@@ -110,7 +112,7 @@ namespace Game
 		// Unlimited lamp fuel
 		distormx_hook((void**)&_KeroseneLampItem_ReduceFuel, (void*)static_cast<void (*)(KeroseneLampItem*, float)>([](KeroseneLampItem* lamp, float hours_burned)
 		{
-			volatile float fuel = lamp->m_CurrentFuelLiters;
+			float fuel = lamp->m_CurrentFuelLiters;
 			gCheat->_KeroseneLampItem_ReduceFuel(lamp, hours_burned);
 			if (gCheat->unlimitedLampFuel)
 			{
@@ -135,19 +137,49 @@ namespace Game
 			return status;
 		}));
 
+		// Full map survey
+		distormx_hook((void**)&_Panel_Map_DoDetailSurvey, (void*)static_cast<void(*)(Panel_Map*, SurveyType)>([](Panel_Map* panel, SurveyType survey_type)
+		{
+			// Backup values
+			float detailSurveyRadiusMeters_ = panel->m_DetailSurveyRadiusMeters;
+			float detailSurveyRockCacheRadiusMeters_ = panel->m_DetailSurveyRockCacheRadiusMeters;
+			float detailSurveySprayPaintRadiusMeters_ = panel->m_DetailSurveySprayPaintRadiusMeters;
+			float detailSurvayPolaroidRadiusMeters_ = panel->m_DetailSurvayPolaroidRadiusMeters;
+
+			if (gCheat->fullMapSurvey)
+			{
+				panel->m_DetailSurveyRadiusMeters =
+					panel->m_DetailSurveyRockCacheRadiusMeters =
+					panel->m_DetailSurveySprayPaintRadiusMeters =
+					panel->m_DetailSurvayPolaroidRadiusMeters = 999999.0f;
+			}
+
+			gCheat->_Panel_Map_DoDetailSurvey(panel, survey_type);
+
+			// Restore
+			panel->m_DetailSurveyRadiusMeters = detailSurveyRadiusMeters_;
+			panel->m_DetailSurveyRockCacheRadiusMeters = detailSurveyRockCacheRadiusMeters_;
+			panel->m_DetailSurveySprayPaintRadiusMeters = detailSurveySprayPaintRadiusMeters_;
+			panel->m_DetailSurvayPolaroidRadiusMeters = detailSurvayPolaroidRadiusMeters_;
+		}));
+
 		// ==========================================================================================
 		// The hooks below are exclusively used to retrieve specific object pointers
-
-		distormx_hook((void**)&_Panel_HUD_Update, (void*)static_cast<void(*)(Panel_HUD*)>([](Panel_HUD* panel)
-		{
-			gCheat->panelHUD = panel;
-			gCheat->_Panel_HUD_Update(panel);
-		}));
 
 		distormx_hook((void**)&_Panel_Inventory_Update, (void*)static_cast<void(*)(Panel_Inventory*)>([](Panel_Inventory* panel)
 		{
 			gCheat->panelInventory = panel;
 			gCheat->_Panel_Inventory_Update(panel);
+		}));
+		distormx_hook((void**)&_Panel_HUD_Update, (void*)static_cast<void(*)(Panel_HUD*)>([](Panel_HUD* panel)
+		{
+			gCheat->panelHUD = panel;
+			gCheat->_Panel_HUD_Update(panel);
+		}));
+		distormx_hook((void**)&_Panel_Map_Update, (void*)static_cast<void(*)(Panel_Map*)>([](Panel_Map* panel)
+		{
+			gCheat->panelMap = panel;
+			gCheat->_Panel_Map_Update(panel);
 		}));
 	}
 
@@ -161,8 +193,9 @@ namespace Game
 		distormx_unhook(&_Utils_GetTotalWeightKG);
 		distormx_unhook(&_PlayerMovement_GetSnowDepthMovementMultiplier);
 		distormx_unhook(&_PlayerManager_DoPositionCheck);
-		distormx_unhook(&_Panel_HUD_Update);
 		distormx_unhook(&_Panel_Inventory_Update);
+		distormx_unhook(&_Panel_HUD_Update);
+		distormx_unhook(&_Panel_Map_Update);
 		distormx_destroy();
 	}
 
@@ -264,6 +297,13 @@ namespace Game
 		{
 			placeAnywhere = !placeAnywhere;
 			ShowMessage(placeAnywhere ? u8"Place item anywhere activated" : u8"Place item anywhere deactivated");
+		}
+
+		// Full map survey cheat
+		if (GetKeyDown(KeyCode::Keypad8))
+		{
+			fullMapSurvey = !fullMapSurvey;
+			ShowMessage(fullMapSurvey ? u8"Full map survey activated" : u8"Full map survey deactivated");
 		}
 	}
 

@@ -428,6 +428,13 @@ namespace Game
 		InvalidTooManyPlacedDecals
 	};
 
+	enum class SurveyType : uint32_t
+	{
+		Charcoal,
+		RockCache,
+		SprayPaint
+	};
+
 	// ==========================================================================================
 
 	template <typename T>
@@ -523,13 +530,11 @@ namespace Game
 	struct KeroseneLampIntensity;
 	struct Light;
 	struct HeatSource;
-
 	struct GameObject;
 	struct DialogueStatesTable;
 	struct MissionObjectiveTable;
 	struct AfflictionDefinitionTable;
 	struct SceneMapping;
-
 	struct GameManager;
 	struct PlayerManager;
 	struct DebugViewModeManager;
@@ -541,7 +546,6 @@ namespace Game
 	struct Encumber;
 	struct AuroraField;
 	struct StoryMissionObjective;
-
 	struct TweenScale;
 	struct Transform;
 	struct InventoryGridItem;
@@ -550,10 +554,24 @@ namespace Game
 	struct UIButton;
 	struct UISlider;
 	struct UIPanel;
+	struct UIWidget;
 	struct ButtonLegendContainer;
 	struct ItemDescriptionPage;
 	struct GearItemCoverflow;
 	struct GamepadButtonSprite;
+	struct GenericButtonMouseSpawner;
+	struct MapCrosshair;
+	struct RegionMap;
+	struct TweenAlpha;
+	struct MapElementSaveData;
+	struct DetailSurveyPosition;
+	struct FogOfWar;
+	struct VistaLocationData;
+	struct VistaLocation;
+	struct MapElementRemovalData;
+	struct MapIcon;
+	struct MissionMapMarkerInfo;
+	struct ClusterCell;
 
 	struct Panel_Actions;
 	struct Panel_ActionPicker;
@@ -1221,6 +1239,155 @@ namespace Game
 		bool m_IsInSectionNav;
 		StoryMissionObjective* m_ObjectiveToShow;
 		int m_HasRequestedObjectiveUpdate;
+	};
+
+	struct Panel_Map : Panel_Base
+	{
+		enum class HoverState : uint32_t
+		{
+			None,
+			BigSprite,
+			SmallSprite,
+			Area
+		};
+
+		enum class IconDisplayFilters : uint32_t
+		{
+			None = 0,
+			Resources = 1,
+			Structures = 2,
+			Corpses = 4,
+			RockCaches = 8,
+			SprayMarkers = 16,
+			All = 31
+		};
+
+		GameObject* m_SurvivalTabs;
+		GameObject* m_StoryTabs;
+		ButtonLegendContainer* m_ButtonLegendContainer;
+		GenericButtonMouseSpawner* m_WorldMapButtonObj;
+		UILabel* m_HeaderLabel;
+		Transform* m_MapElementsTransform;
+		MapCrosshair* m_Crosshair;
+		Transform* m_PlayerIcon;
+		GameObject* m_BigSpritePrefab;
+		Transform* m_BigSpritePoolParent;
+		Transform* m_BigSpriteActiveObjects;
+		GameObject* m_SmallSpritePrefab;
+		Transform* m_SmallSpritePoolParent;
+		Transform* m_SmallSpriteActiveObjects;
+		GameObject* m_DetailEntryPrefab;
+		Transform* m_DetailEntryPoolParent;
+		Transform* m_DetailEntryActiveObjects;
+		GameObject* m_TextPrefab;
+		Transform* m_TextPoolParent;
+		Transform* m_TextActiveObjects;
+		GameObject* m_AreaPrefab;
+		Transform* m_AreaPoolParent;
+		Transform* m_AreaActiveObjects;
+		GameObject* m_RegionSelectObject;
+		UILabel* m_LastUpdatedLabel;
+		GameObject* m_MousePromptDelete;
+		float m_DetailSurveyRadiusMeters;
+		float m_DetailSurveyRockCacheRadiusMeters;
+		float m_DetailSurveySprayPaintRadiusMeters;
+		float m_DetailSurvayPolaroidRadiusMeters;
+		float m_RangeToShowMapIcons;
+		float m_ZoomedInSize;
+		float m_GamepadMoveSpeed;
+		float m_MagnetizeSpeed;
+		List<RegionMap>* m_MapObjects;
+		RegionMap* m_WorldMapObject;
+		List<String>* m_LocationsToUseBigSprite;
+		List<String>* m_OutdoorLocationLabelsToIgnore;
+		bool m_DoMapCondense;
+		float m_MapCondenseDistance;
+		bool m_DoMapIconSpacing;
+		float m_MapIconSpacingDistance;
+		bool m_MergeMissionIconsWithLocations;
+		float m_MapIconLocationSpacingDistance;
+		String* m_MessageMapIcon;
+		LocalizedString* m_SprayPaintQuickKeyMapHeader;
+		LocalizedString* m_SprayPaintQuickKeyMapMessage;
+		LocalizedString* m_VistaLocationDiscoveredHeader;
+		LocalizedString* m_VistaLocationDiscoveredMessage;
+		String* m_VistaDiscoverDynamicString;
+		int32_t m_ScreenTopOffset;
+		int32_t m_ScreenBottomOffset;
+		int32_t m_ScreenLeftOffset;
+		int32_t m_ScreenRightOffset;
+		String* m_OpenMapAudio;
+		String* m_CloseMapAudio;
+		String* m_ChangeMapAudio;
+		String* m_VistaCompletedAudio;
+		float m_HoursThresholdJustNow;
+		float m_HoursThresholdHoursAgo;
+		float m_HoursThresholdToday;
+		float m_HoursThresholdYesterday;
+		TweenAlpha* m_ObjectiveTween;
+		UILabel* m_ObjectiveLabel;
+		UILabel* m_ObjectiveDesc;
+		UISprite* m_ObjectiveIcon;
+		GameObject* m_CartographyFilters;
+		float m_FilterVerticalDelayTimeSeconds;
+		UIButton* m_ResourcesButton;
+		UIWidget* m_ResourcesOffOnDeselect;
+		UIButton* m_StructuresButton;
+		UIWidget* m_StructuresOffOnDeselect;
+		UIButton* m_CorpsesButton;
+		UIWidget* m_CorpsesOffOnDeselect;
+		UIButton* m_RockCachesButton;
+		UIWidget* m_RockCachesOffOnDeselect;
+		UIButton* m_SprayMarkingsButton;
+		UIWidget* m_SprayMarkingsOffOnDeselect;
+		int32_t m_CartographyRockCacheSkillLevel;
+		int32_t m_CartographyFilterSkillLevel;
+		int32_t m_CartographyMarkerSkillLevel;
+		List<String>* m_StructuresKeywordList;
+		List<String>* m_CorpseKeywordList;
+		String* m_RockCacheKeyword;
+		String* m_UserMarkerKeyword;
+		float m_MarkerClusterMapSize;
+		String* m_SprayClusterIcon;
+		String* m_RockCacheClusterIcon;
+		String* m_MarkerClusterLocID;
+		String* m_LowVisibilitySurveyLocId;
+		float m_MultiMarkerIconSize;
+		String** m_LocationNames;
+		String** m_SpriteAssignments;
+		bool m_HasBeenUpdated;
+		Dictionary<String, List<MapElementSaveData>>* m_MapElementData;
+		Dictionary<Transform, MapElementSaveData>* m_TransformToMapData;
+		Dictionary<String, List<DetailSurveyPosition>>* m_DetailSurveyPositions;
+		Dictionary<String, float>* m_DetailSurveyLastUpdateTimes;
+		Dictionary<String, FogOfWar>* m_FogOfWar;
+		Dictionary<String, List<VistaLocationData>>* m_SurveyedVistaLocations;
+		List<VistaLocation>* m_ActiveVistaLocations;
+		List<VistaLocation>* m_VistaLocationList;
+		List<MapElementRemovalData>* m_DelayedMapElementRemovals;
+		bool m_IsZoomed;
+		HoverState m_HoverState;
+		Vector3 m_MapElementsOrigPos;
+		MapIcon* m_MapIconBeingHovered;
+		MapIcon* m_MapIconToRenameDelete;
+		UIWidget* m_CrosshairWidget;
+		bool m_StartHasBeenCalled;
+		String* m_RegionNameOfLoadedObjects;
+		List<String>* m_UnlockedRegionNames;
+		int32_t m_RegionSelectedIndex;
+		MissionMapMarkerInfo** m_MarkerInfoFromResources;
+		uint32_t m_OpenCloseAudioID;
+		bool m_DoMapCondenseInternal;
+		bool m_DoMapIconSpacingInternal;
+		bool m_MergeMissionIconsWithLocationsInternal;
+		GamepadButtonSprite** m_GamepadButtonSprites;
+		MapElementSaveData* m_ObjectIconMapData;
+		IconDisplayFilters m_IconDisplayFilters;
+		List<UIWidget>* m_FilterOffOnDeselect;
+		bool m_FilterSelecterEnabled;
+		int32_t m_FilterSelectionIndex;
+		List<ClusterCell>* m_ClusterCells;
+		MapElementSaveData* m_LastMapElementAdded;
 	};
 
 	struct InterfaceManager_StaticFields
