@@ -1,428 +1,468 @@
 #include "cheat.h"
+#include "TLD.h"
+
 #include "distormx/distormx.h"
-#include "fmt/format.h"
+#include <il2cppdump/il2cpp.h>
+
+#include <cstddef>
 #include <algorithm>
 #include <memory>
+#include <string>
 
-std::unique_ptr<Game::Cheat> gCheat;
+// ==========================================================================================
+void* (*_Encoding_get_UTF8)();
+System_String_o* (*_String_CreateStringFromEncoding)(const char* bytes, uint32_t size, void* encoding);
 
-namespace Game
+InterfaceManager_o* (*_InterfaceManager_GetInstance)();
+GameManager_o* (*_GameManager_GetInstance)();
+
+bool(*_Input_GetKey)(TLD::KeyCode);
+bool(*_Input_GetKeyUp)(TLD::KeyCode);
+bool(*_Input_GetKeyDown)(TLD::KeyCode);
+
+void(*_vpFPSWeapon_SetDisableAimBreathing)(bool);
+void(*_vpFPSWeapon_SetDisableAimSway)(bool);
+void(*_vpFPSWeapon_SetDisableAimStamina)(bool);
+void(*_vpFPSWeapon_SetDisableAimShake)(bool);
+void(*_vpFPSWeapon_SetDisableDepthOfField)(bool);
+
+void(*_GearManager_DestroyNextUpdate)(GearItem_o*, bool);
+void(*_GearManager_DestroyMarkedObjects)();
+void(*_GearManager_Update)();
+void(*_GearManager_UpdateAll)();
+
+TLD::PlayerControlMode(*_PlayerManager_GetControlMode)(PlayerManager_o*);
+void(*_PlayerManager_SetControlMode)(PlayerManager_o*, TLD::PlayerControlMode);
+GearItem_o* (*_PlayerManager_InstantiateItemInPlayerInventory)(PlayerManager_o*, GearItem_o*, int32_t numUnits, bool enableNotificationFlag);
+bool(*_Panel_Inventory_IsEnabled)(Panel_Inventory_o*);
+void(*_Panel_Inventory_MarkDirty)(Panel_Inventory_o*);
+void(*_Panel_Subtitles_ShowSubtitlesForced)(Panel_Subtitles_o*, System_String_o*, float duration);
+
+void(*_GameManager_UpdateNotPaused)(GameManager_o*);
+bool(*_HUDManager_ShouldHideCrossHairs)(HUDManager_o*);
+uint32_t(*_PlayerManager_DoPositionCheck)(PlayerManager_o*);
+int32_t(*_BodyDamage_GetChanceKill)(BodyDamage_o*, TLD::BodyPart, TLD::BodyDamageWeapon);
+void(*_KeroseneLampItem_ReduceFuel)(KeroseneLampItem_o*, float hoursBurned);
+bool(*_FlashlightItem_IsLit)(FlashlightItem_o*);
+float(*_FlashlightItem_GetNormalizedCharge)(FlashlightItem_o*);
+float(*_PlayerMovement_GetSnowDepthMovementMultiplier)(PlayerMovement_o*);
+
+template <typename T>
+void SetFunctionPointer(T& ptrVar, void* hmodule, intptr_t rva)
 {
-	Cheat::Cheat() = default;
+	ptrVar = reinterpret_cast<T>(static_cast<char*>(hmodule) + rva);
+}
 
-	Cheat::~Cheat()
-	{
-		SetSteadyCamera(false);
-		RemoveHooks();
-	}
+// ==========================================================================================
+namespace Cheat
+{
+	bool steadyCamera {};
+	bool alwaysShowCrosshair {};
+	bool placeAnywhere {};
+	bool oneHitKill {};
+	bool unlimitedLampFuel {};
+	bool enableFlashlight {};
+	bool allowRevolverAimMove {};
 
-	void Cheat::UpdateRVA(void* hmodule)
-	{
-		// You can get updated offsets using ill2cppdumper
+	bool speedHack {};
+	float playerSpeedMultiplier {1.0f};
 
-		_Encoding_get_UTF8 = (char*)hmodule + 0xEFD2A0;
-		_String_CreateStringFromEncoding = (char*)hmodule + 0x9A4790;
-		_Input_GetKey = (char*)hmodule + 0x1092A00;
-		_Input_GetKeyUp = (char*)hmodule + 0x1092A50;
-		_Input_GetKeyDown = (char*)hmodule + 0x1092AA0;
-		_GameManager_UpdateNotPaused = (char*)hmodule + 0x15CA200;
-		_PlayerManager_DoPositionCheck = (char*)hmodule + 0x15799A0;
-		_HUDManager_ShouldHideCrossHairs = (char*)hmodule + 0x1A86840;
-		_BodyDamage_GetChanceKill = (char*)hmodule + 0x1CAA880;
-		_Inventory_ProcessItems = (char*)hmodule + 0x17EC3C0;
-		_Utils_GetTotalWeightKG = (char*)hmodule + 0x1A2E3D0;
-		_GearItem_Degrade = (char*)hmodule + 0x1CD4460;
-		_KeroseneLampItem_ReduceFuel = (char*)hmodule + 0x1803880;
-		_PlayerMovement_GetSnowDepthMovementMultiplier = (char*)hmodule + 0x17B3AF0;
-		_vpFPSWeapon_SetDisableAimBreathing = (char*)hmodule + 0x1FFBC00;
-		_vpFPSWeapon_SetDisableAimSway = (char*)hmodule + 0x1FFBC90;
-		_vpFPSWeapon_SetDisableAimStamina = (char*)hmodule + 0x1FFBD20;
-		_vpFPSWeapon_SetDisableAimShake = (char*)hmodule + 0x1FFBDB0;
-		_vpFPSWeapon_SetDisableDepthOfField = (char*)hmodule + 0x1FFBE40;
-		_vpFPSCamera_SetDisableAmbientSway = (char*)hmodule + 0x1D99040;
-		_Panel_Inventory_Update = (char*)hmodule + 0x16C87D0;
-		_Panel_Inventory_MarkDirty = (char*)hmodule + 0x16CBCB0;
-		_Panel_Inventory_IsEnabled = (char*)hmodule + 0x16CBCF0;
-		_Panel_Inventory_GetCurrentlySelectedGearItem = (char*)hmodule + 0x16CFD10;
-		_Panel_HUD_Update = (char*)hmodule + 0x16ABED0;
-		_Panel_HUD_ShowSubtitlesForced = (char*)hmodule + 0x16B05B0;
-		_Panel_HUD_HideSubtitles = (char*)hmodule + 0x16B09B0;
-		_Panel_Map_Update = (char*)hmodule + 0x1795170;
-		_Panel_Map_DoDetailSurvey = (char*)hmodule + 0x1797950;
-	}
+	/*
+	bool neverDegradeItems {};
+	bool unlimitedBackpack {};
+	bool unlimitedStorage {};
+	bool fullMapSurvey {};
+	*/
 
-	void Cheat::InstallHooks()
-	{
-		// Hook the main game loop
-		distormx_hook((void**)&_GameManager_UpdateNotPaused, (void*)static_cast<void (*)(GameManager*)>([](GameManager* game_manager)
-		{
-			gCheat->OnUpdate(game_manager);
-		}));
+	bool shouldUpdateGearManager {};
 
-		// Always show crosshair
-		distormx_hook((void**)&_HUDManager_ShouldHideCrossHairs, (void*)static_cast<bool (*)(HUDManager*)>([](HUDManager* hud_manager) -> bool
-		{
-			if (gCheat->alwaysShowCrosshair)
-			{
-				hud_manager->m_CrosshairAlpha = 1.0f;
-				return false;
-			}
-			return gCheat->_HUDManager_ShouldHideCrossHairs(hud_manager);
-		}));
-
-		// One-hit kill
-		distormx_hook((void**)&_BodyDamage_GetChanceKill, (void*)static_cast<int32_t(*)(BodyDamage*, BodyPart, BodyDamage::Weapon)>([](BodyDamage* damage, BodyPart part, BodyDamage::Weapon weapon) -> int32_t
-		{
-			if (gCheat->oneHitKill)
-			{
-				return 100;
-			}
-			return gCheat->_BodyDamage_GetChanceKill(damage, part, weapon);
-		}));
-
-		// Never degrade
-		distormx_hook((void**)&_GearItem_Degrade, (void*)static_cast<void (*)(GearItem*, float)>([](GearItem* item, float hp)
-		{
-			if (!gCheat->neverDegradeItems)
-			{
-				gCheat->_GearItem_Degrade(item, hp);
-			}
-		}));
-
-		// Unlimited backpack
-		distormx_hook((void**)&_Inventory_ProcessItems, (void*)static_cast<void (*)(Inventory*)>([](Inventory* inventory)
-		{
-			gCheat->_Inventory_ProcessItems(inventory);
-			if (gCheat->unlimitedBackpack)
-			{
-				inventory->m_TotalWeight = 0.0f;
-			}
-		}));
-
-		// Unlimited storage
-		distormx_hook((void**)&_Utils_GetTotalWeightKG, (void*)static_cast<float (*)(List<GearItem>*)>([](List<GearItem>* items) -> float
-		{
-			if (gCheat->unlimitedStorage)
-			{
-				return 0.0f;
-			}
-			return gCheat->_Utils_GetTotalWeightKG(items);
-		}));
-
-		// Unlimited lamp fuel
-		distormx_hook((void**)&_KeroseneLampItem_ReduceFuel, (void*)static_cast<void (*)(KeroseneLampItem*, float)>([](KeroseneLampItem* lamp, float hours_burned)
-		{
-			float fuel = lamp->m_CurrentFuelLiters;
-			gCheat->_KeroseneLampItem_ReduceFuel(lamp, hours_burned);
-			if (gCheat->unlimitedLampFuel)
-			{
-				lamp->m_CurrentFuelLiters = fuel;
-			}
-		}));
-
-		// Speed-cheat
-		distormx_hook((void**)&_PlayerMovement_GetSnowDepthMovementMultiplier, (void*)static_cast<float (*)(PlayerMovement*)>([](PlayerMovement* /*movement*/) -> float
-		{
-			return gCheat->playerSpeed;
-		}));
-
-		// Place item anywhere
-		distormx_hook((void**)&_PlayerManager_DoPositionCheck, (void*)static_cast<MeshLocationCategory(*)(PlayerManager*)>([](PlayerManager* player_manager) -> MeshLocationCategory
-		{
-			MeshLocationCategory status = gCheat->_PlayerManager_DoPositionCheck(player_manager);
-			if (gCheat->placeAnywhere)
-			{
-				status = MeshLocationCategory::Valid;
-			}
-			return status;
-		}));
-
-		// Full map survey
-		distormx_hook((void**)&_Panel_Map_DoDetailSurvey, (void*)static_cast<void(*)(Panel_Map*, SurveyType)>([](Panel_Map* panel, SurveyType survey_type)
-		{
-			// Backup values
-			float detailSurveyRadiusMeters_ = panel->m_DetailSurveyRadiusMeters;
-			float detailSurveyRockCacheRadiusMeters_ = panel->m_DetailSurveyRockCacheRadiusMeters;
-			float detailSurveySprayPaintRadiusMeters_ = panel->m_DetailSurveySprayPaintRadiusMeters;
-			float detailSurvayPolaroidRadiusMeters_ = panel->m_DetailSurvayPolaroidRadiusMeters;
-
-			if (gCheat->fullMapSurvey)
-			{
-				panel->m_DetailSurveyRadiusMeters =
-					panel->m_DetailSurveyRockCacheRadiusMeters =
-					panel->m_DetailSurveySprayPaintRadiusMeters =
-					panel->m_DetailSurvayPolaroidRadiusMeters = 999999.0f;
-			}
-
-			gCheat->_Panel_Map_DoDetailSurvey(panel, survey_type);
-
-			// Restore
-			panel->m_DetailSurveyRadiusMeters = detailSurveyRadiusMeters_;
-			panel->m_DetailSurveyRockCacheRadiusMeters = detailSurveyRockCacheRadiusMeters_;
-			panel->m_DetailSurveySprayPaintRadiusMeters = detailSurveySprayPaintRadiusMeters_;
-			panel->m_DetailSurvayPolaroidRadiusMeters = detailSurvayPolaroidRadiusMeters_;
-		}));
-
-		// ==========================================================================================
-		// The hooks below are exclusively used to retrieve specific object pointers
-
-		distormx_hook((void**)&_Panel_Inventory_Update, (void*)static_cast<void(*)(Panel_Inventory*)>([](Panel_Inventory* panel)
-		{
-			gCheat->panelInventory = panel;
-			gCheat->_Panel_Inventory_Update(panel);
-		}));
-		distormx_hook((void**)&_Panel_HUD_Update, (void*)static_cast<void(*)(Panel_HUD*)>([](Panel_HUD* panel)
-		{
-			gCheat->panelHUD = panel;
-			gCheat->_Panel_HUD_Update(panel);
-		}));
-		distormx_hook((void**)&_Panel_Map_Update, (void*)static_cast<void(*)(Panel_Map*)>([](Panel_Map* panel)
-		{
-			gCheat->panelMap = panel;
-			gCheat->_Panel_Map_Update(panel);
-		}));
-	}
-
-	void Cheat::RemoveHooks()
-	{
-		distormx_unhook(&_GameManager_UpdateNotPaused);
-		distormx_unhook(&_HUDManager_ShouldHideCrossHairs);
-		distormx_unhook(&_BodyDamage_GetChanceKill);
-		distormx_unhook(&_GearItem_Degrade);
-		distormx_unhook(&_Inventory_ProcessItems);
-		distormx_unhook(&_Utils_GetTotalWeightKG);
-		distormx_unhook(&_PlayerMovement_GetSnowDepthMovementMultiplier);
-		distormx_unhook(&_PlayerManager_DoPositionCheck);
-		distormx_unhook(&_Panel_Inventory_Update);
-		distormx_unhook(&_Panel_HUD_Update);
-		distormx_unhook(&_Panel_Map_Update);
-		distormx_destroy();
-	}
-
-	void Cheat::OnUpdate(GameManager* gm)
-	{
-		// Call the original update of the game
-		_GameManager_UpdateNotPaused(gm);
-
-		// Unhook everything and shutdown the cheat
-		if (GetKeyDown(KeyCode::End))
-		{
-			ShowMessage(u8"Shutting down cheat");
-			Release();
-			return;
-		}
-
-		if (IsInventoryOpen())
-		{
-			if (GetKeyDown(KeyCode::KeypadPlus))
-			{
-				ChangeInventoryItem(InventoryItemAction::Increment);
-			}
-			if (GetKeyDown(KeyCode::KeypadMinus))
-			{
-				ChangeInventoryItem(InventoryItemAction::Decrement);
-			}
-			if (GetKeyDown(KeyCode::KeypadMultiply) && IsInventoryOpen())
-			{
-				ChangeInventoryItem(InventoryItemAction::Repair);
-			}
-			return;
-		}
-
-		// Increase/Decrease player speed.
-		if (GetKeyDown(KeyCode::KeypadPlus) || GetKeyDown(KeyCode::KeypadMinus))
-		{
-			float newSpeed = playerSpeed + (GetKeyDown(KeyCode::KeypadMinus) ? -1.0f : 1.0f);
-			newSpeed = std::clamp(newSpeed, 1.0f, MaxPlayerSpeedMultiplier);
-
-			if (newSpeed != playerSpeed)
-			{
-				playerSpeed = newSpeed;
-				ShowMessage(fmt::format(u8"Movement speed set to {:d}x", (int)newSpeed));
-			}
-		}
-
-		// Toggle crosshairs
-		if (GetKeyDown(KeyCode::Keypad0))
-		{
-			alwaysShowCrosshair = !alwaysShowCrosshair;
-			ShowMessage(alwaysShowCrosshair ? u8"Crosshair always visible" : u8"Crosshair not always visible");
-		}
-
-		// Toggle one-hit kill cheat
-		if (GetKeyDown(KeyCode::Keypad1))
-		{
-			oneHitKill = !oneHitKill;
-			ShowMessage(oneHitKill ? u8"One-hit kill activated" : u8"One-hit kill deactivated");
-		}
-
-		// Toggle never-degrade items cheat
-		if (GetKeyDown(KeyCode::Keypad2))
-		{
-			neverDegradeItems = !neverDegradeItems;
-			ShowMessage(neverDegradeItems ? u8"Items never degrade" : u8"Items will degrade");
-		}
-
-		// Steady camera cheat
-		if (GetKeyDown(KeyCode::Keypad3))
-		{
-			steadyCamera = !steadyCamera;
-			SetSteadyCamera(steadyCamera);
-			ShowMessage(steadyCamera ? u8"Steady camera activated" : u8"Steady camera deactivated");
-		}
-
-		// Unlimited backpack cheat
-		if (GetKeyDown(KeyCode::Keypad4))
-		{
-			unlimitedBackpack = !unlimitedBackpack;
-			ShowMessage(unlimitedBackpack ? u8"Unlimited backpack activated" : u8"Unlimited backpack deactivated");
-		}
-
-		// Unlimited storage cheat
-		if (GetKeyDown(KeyCode::Keypad5))
-		{
-			unlimitedStorage = !unlimitedStorage;
-			ShowMessage(unlimitedStorage ? u8"Unlimited storage activated" : u8"Unlimited storage deactivated");
-		}
-
-		// Unlimited lamp fuel cheat
-		if (GetKeyDown(KeyCode::Keypad6))
-		{
-			unlimitedLampFuel = !unlimitedLampFuel;
-			ShowMessage(unlimitedLampFuel ? u8"Unlimited lamp fuel activated" : u8"Unlimited lamp fuel deactivated");
-		}
-
-		// Place anywhere cheat
-		if (GetKeyDown(KeyCode::Keypad7))
-		{
-			placeAnywhere = !placeAnywhere;
-			ShowMessage(placeAnywhere ? u8"Place item anywhere activated" : u8"Place item anywhere deactivated");
-		}
-
-		// Full map survey cheat
-		if (GetKeyDown(KeyCode::Keypad8))
-		{
-			fullMapSurvey = !fullMapSurvey;
-			ShowMessage(fullMapSurvey ? u8"Full map survey activated" : u8"Full map survey deactivated");
-		}
-	}
-
-	void Cheat::ShowMessage(std::string_view message)
-	{
-		if (!panelHUD)
-		{
-			return;
-		}
-
-		// Get a default UTF-8 encoding
-		Encoding* utf8 = _Encoding_get_UTF8();
-
-		// Create a managed string
-		String* str = _String_CreateStringFromEncoding(message.data(), message.length(), utf8);
-
-		// Display it
-		_Panel_HUD_ShowSubtitlesForced(panelHUD, str);
-		_Panel_HUD_HideSubtitles(panelHUD, 1.0f);
-	}
-
-	void Cheat::SetSteadyCamera(bool steady)
+	void SetSteadyCamera(bool steady)
 	{
 		_vpFPSWeapon_SetDisableAimBreathing(steady);
 		_vpFPSWeapon_SetDisableAimSway(steady);
 		_vpFPSWeapon_SetDisableAimStamina(steady);
 		_vpFPSWeapon_SetDisableAimShake(steady);
 		_vpFPSWeapon_SetDisableDepthOfField(steady);
-		_vpFPSCamera_SetDisableAmbientSway(steady);
-	}
+	};
 
-	bool Cheat::IsInventoryOpen()
+	void GameManager_Update(GameManager_o* game_manager)
 	{
-		return panelInventory && _Panel_Inventory_IsEnabled(panelInventory);
-	}
+		// Call the original update of the game
+		_GameManager_UpdateNotPaused(game_manager);
 
-	void Cheat::ChangeInventoryItem(InventoryItemAction action)
-	{
-		GearItem* item = _Panel_Inventory_GetCurrentlySelectedGearItem(panelInventory);
-		if (!item)
+		InterfaceManager_o* const interface_manager = _InterfaceManager_GetInstance();
+		Panel_Inventory_o* const panel_inventory = interface_manager->klass->static_fields->m_Panel_Inventory;
+		Panel_Subtitles_o* const panel_subtitles = interface_manager->klass->static_fields->m_Panel_Subtitles;
+		PlayerManager_o* const player_manager = game_manager->klass->static_fields->m_PlayerManager;
+		vp_FPSCamera_o* const fps_camera = game_manager->klass->static_fields->m_vpFPSCamera;
+
+		if (shouldUpdateGearManager)
 		{
+			_GearManager_Update();
+			_Panel_Inventory_MarkDirty(panel_inventory);
+			shouldUpdateGearManager = false;
+		}
+		if (allowRevolverAimMove)
+		{
+			TLD::PlayerControlMode mode = _PlayerManager_GetControlMode(player_manager);
+			if (mode == TLD::PlayerControlMode::AimRevolver)
+			{
+				_PlayerManager_SetControlMode(player_manager, TLD::PlayerControlMode::Normal);
+			}
+		}
+
+		auto ShowMessage = [panel_subtitles](std::string_view message) -> void
+		{
+			_Panel_Subtitles_ShowSubtitlesForced(panel_subtitles, _String_CreateStringFromEncoding(message.data(), message.size(), _Encoding_get_UTF8()), 4.0f);
+		};
+
+		// Inventory cheats
+		if (_Panel_Inventory_IsEnabled(panel_inventory))
+		{
+			InventoryGridItem_array* const items = panel_inventory->fields.m_TableItems;
+			const int32_t index = panel_inventory->fields.m_SelectedItemIndexVal;
+
+			if (index < items->max_length)
+			{
+				InventoryGridItem_o* const selectedGridItem = items->m_Items[index];
+
+				// Actions with selected item
+				if (selectedGridItem)
+				{
+					GearItem_o* const selectedItem = selectedGridItem->fields.m_GearItem;
+					StackableItem_o* const stackable = selectedItem->fields.m_StackableItem;
+					LiquidItem_o* const liquid = selectedItem->fields.m_LiquidItem;
+					bool panelDirty = false;
+					bool destroyItem = false;
+
+					const bool shiftDown = _Input_GetKey(TLD::KeyCode::LeftShift);
+
+					// Repair item
+					if (_Input_GetKeyDown(TLD::KeyCode::KeypadMultiply))
+					{
+						if (!selectedItem->fields.m_WornOut)
+						{
+							selectedItem->fields.m_CurrentHP = selectedItem->fields.m_MaxHP;
+							panelDirty = true;
+						}
+					}
+
+					if (_Input_GetKeyDown(TLD::KeyCode::Insert))
+					{
+						_PlayerManager_InstantiateItemInPlayerInventory(player_manager, selectedItem, 1, false);
+						panelDirty = true;
+					}
+					else if (_Input_GetKeyDown(TLD::KeyCode::Delete))
+					{
+						destroyItem = true;
+					}
+					else if (_Input_GetKeyDown(TLD::KeyCode::KeypadPlus))
+					{
+						if (stackable)
+						{
+							++(stackable->fields.m_Units);
+							panelDirty = true;
+						}
+						else if (liquid)
+						{
+							const float capacity = liquid->fields.m_LiquidCapacityLiters;
+							float& liters = liquid->fields.m_LiquidLiters;
+							liters += capacity * 0.1f;
+							if (liters > capacity)
+							{
+								liters = capacity;
+							}
+							panelDirty = true;
+						}
+					}
+					else if (_Input_GetKeyDown(TLD::KeyCode::KeypadMinus))
+					{
+						if (stackable)
+						{
+							--(stackable->fields.m_Units);
+							panelDirty = true;
+						}
+						else if (liquid)
+						{
+							const float capacity = liquid->fields.m_LiquidCapacityLiters;
+							float& liters = liquid->fields.m_LiquidLiters;
+							liters -= capacity * 0.1f;
+							if (liters < 0.0f)
+							{
+								destroyItem = true;
+							}
+							else
+							{
+								panelDirty = true;
+							}
+						}
+					}
+
+					if (destroyItem)
+					{
+						_GearManager_DestroyNextUpdate(selectedItem, true);
+						shouldUpdateGearManager = true;
+					}
+					else if (panelDirty)
+					{
+						_Panel_Inventory_MarkDirty(panel_inventory);
+					}
+				}
+			}
 			return;
 		}
 
-		bool shiftDown = GetKey(KeyCode::LeftShift) || GetKey(KeyCode::RightShift);
-
-		switch (action)
+		// Quickly disable all cheats
+		if (_Input_GetKeyDown(TLD::KeyCode::End))
 		{
-			case InventoryItemAction::Increment: [[fallthrough]];
-			case InventoryItemAction::Decrement:
-			{
-				int32_t sign = (action == InventoryItemAction::Decrement) ? -1 : 1;
+			steadyCamera = false;
+			alwaysShowCrosshair = false;
+			placeAnywhere = false;
+			oneHitKill = false;
+			unlimitedLampFuel = false;
+			enableFlashlight = false;
 
-				if (StackableItem* stackable = item->m_StackableItem)
-				{
-					int32_t& units = stackable->m_Units;
-					units += (shiftDown ? 5 : 1) * sign;
-					units = std::max(units, 0);
-				}
-				else if (WaterSupply* water = item->m_WaterSupply)
-				{
-					float& amount = water->m_VolumeInLiters;
-					amount += (shiftDown ? 1.0f : 0.5f) * sign;
-					amount = std::max(amount, 0.0f);
-				}
-				else if (LiquidItem* liquid = item->m_LiquidItem)
-				{
-					float& amount = liquid->m_LiquidLiters;
-					amount += (shiftDown ? 0.5f : 0.1f) * sign;
-					amount = std::clamp(amount, 0.0f, liquid->m_LiquidCapacityLiters);
-				}
-				else if (KeroseneLampItem* lamp = item->m_KeroseneLampItem)
-				{
-					float& fuel = lamp->m_CurrentFuelLiters;
-					fuel += (shiftDown ? 0.5f : 0.1f) * sign;
-					fuel = std::clamp(fuel, 0.0f, lamp->m_MaxFuelLiters);
-				}
+			SetSteadyCamera(false);
 
-				_Panel_Inventory_MarkDirty(panelInventory);
-				break;
-			}
-			case InventoryItemAction::Repair:
-			{
-				item->m_CurrentHP = item->m_MaxHP;
-				item->m_WornOut = false;
-				_Panel_Inventory_MarkDirty(panelInventory);
-				break;
-			}
-		}
-	}
-
-	bool Cheat::GetKey(KeyCode key)
-	{
-		return _Input_GetKey(key);
-	}
-
-	bool Cheat::GetKeyDown(KeyCode key)
-	{
-		return _Input_GetKeyDown(key);
-	}
-
-	bool Cheat::GetKeyUp(KeyCode key)
-	{
-		return _Input_GetKeyUp(key);
-	}
-
-	void Cheat::Initialize(void* hmodule)
-	{
-		if (gCheat)
-		{
+			ShowMessage(u8"Disabled all cheats");
 			return;
 		}
-		gCheat = std::make_unique<Cheat>();
-		gCheat->UpdateRVA(hmodule);
-		gCheat->InstallHooks();
+
+		/* Increase weapon stats
+		{
+			vp_FPSWeapon_o* const weapon = fps_camera->fields.m_CurrentWeapon;
+			if (weapon)
+			{
+				GunItem_o* const gunItem = weapon->fields.m_GunItem;
+				if (gunItem)
+				{
+					gunItem->fields.m_AccuracyRange = 100.0f;
+					gunItem->fields.m_FiringRateSeconds = 0.25f;
+					gunItem->fields.m_SwayValue = 0.0f;
+					gunItem->fields.m_SwayIncreasePerSecond = 0.0f;
+					gunItem->fields.m_SwayDecreasePerSecond = 0.0f;
+				}
+			}
+		}
+		//*/
+
+		// Steady camera cheat
+		if (_Input_GetKeyDown(TLD::KeyCode::Keypad0))
+		{
+			steadyCamera = !steadyCamera;
+			SetSteadyCamera(steadyCamera);
+			ShowMessage(steadyCamera ? u8"Steady camera activated" : u8"Steady camera deactivated");
+		}
+
+		// Toggle crosshairs
+		if (_Input_GetKeyDown(TLD::KeyCode::Keypad1))
+		{
+			alwaysShowCrosshair = !alwaysShowCrosshair;
+			ShowMessage(alwaysShowCrosshair ? u8"Crosshair always visible" : u8"Crosshair not always visible");
+		}
+
+		// Place anywhere cheat
+		if (_Input_GetKeyDown(TLD::KeyCode::Keypad2))
+		{
+			placeAnywhere = !placeAnywhere;
+			ShowMessage(placeAnywhere ? u8"Collision between items disabled" : u8"Collision between items enabled");
+		}
+
+		// Toggle one-hit kill cheat
+		if (_Input_GetKeyDown(TLD::KeyCode::Keypad3))
+		{
+			oneHitKill = !oneHitKill;
+			ShowMessage(oneHitKill ? u8"One-hit kill activated" : u8"One-hit kill deactivated");
+		}
+
+		// Unlimited lamp fuel cheat
+		if (_Input_GetKeyDown(TLD::KeyCode::Keypad4))
+		{
+			unlimitedLampFuel = !unlimitedLampFuel;
+			ShowMessage(unlimitedLampFuel ? u8"Unlimited lamp fuel activated" : u8"Unlimited lamp fuel deactivated");
+		}
+
+		// Enable flashlight everywhere
+		if (_Input_GetKeyDown(TLD::KeyCode::Keypad5))
+		{
+			enableFlashlight = !enableFlashlight;
+			ShowMessage(enableFlashlight ? u8"Flashlight enabled" : u8"Flashlight deactivated");
+		}
+
+		// Enable revolver aim movement
+		if (_Input_GetKeyDown(TLD::KeyCode::Keypad6))
+		{
+			allowRevolverAimMove = !allowRevolverAimMove;
+			ShowMessage(allowRevolverAimMove ? u8"Movement while aiming Revolver enabled" : u8"Movement while aiming Revolver disabled");
+		}
+
+		// Speedhack
+		if (_Input_GetKeyDown(TLD::KeyCode::Keypad9))
+		{
+			speedHack = !speedHack;
+			ShowMessage(speedHack ? u8"Speedhack enabled" : u8"Speedhack deactivated");
+		}
+
+		if (speedHack)
+		{
+			int offset = static_cast<int>(_Input_GetKeyDown(TLD::KeyCode::KeypadPlus)) - static_cast<int>(_Input_GetKeyDown(TLD::KeyCode::KeypadMinus));
+			if (offset != 0)
+			{
+				playerSpeedMultiplier = std::clamp(playerSpeedMultiplier + static_cast<float>(offset), 1.0f, 10.0f);
+
+				const char* fmt = "Speedhack set to %fX";
+				int szbuf = snprintf(nullptr, 0, fmt, playerSpeedMultiplier);
+				std::string msg(szbuf + 1, '0');
+				snprintf(msg.data(), szbuf, fmt, playerSpeedMultiplier);
+
+				ShowMessage(msg);
+			}
+		}
 	}
 
-	void Cheat::Release()
+	bool HUDManager_ShouldHideCrossHairs(HUDManager_o* hud_manager)
 	{
-		gCheat.reset();
+		bool state = _HUDManager_ShouldHideCrossHairs(hud_manager);
+		if (alwaysShowCrosshair)
+		{
+			hud_manager->fields.m_CrosshairAlpha = 1.0f;
+			state = false;
+		}
+		return state;
 	}
+
+	uint32_t PlayerManager_DoPositionCheck(PlayerManager_o* player_manager)
+	{
+		uint32_t state = _PlayerManager_DoPositionCheck(player_manager);
+		if (placeAnywhere && state == static_cast<uint32_t>(TLD::MeshLocationCategory::InvalidTooClose))
+		{
+			state = static_cast<uint32_t>(TLD::MeshLocationCategory::Valid);
+		}
+		return state;
+	}
+
+	int32_t BodyDamage_GetChanceKill(BodyDamage_o* bodyDamage, TLD::BodyPart bodyPart, TLD::BodyDamageWeapon damageWeapon)
+	{
+		int32_t chance = _BodyDamage_GetChanceKill(bodyDamage, bodyPart, damageWeapon);
+		if (oneHitKill)
+		{
+			chance = 100;
+		}
+		return chance;
+	}
+
+	void KeroseneLampItem_ReduceFuel(KeroseneLampItem_o* lamp, float hoursBurned)
+	{
+		const float prevFuel = lamp->fields.m_CurrentFuelLiters;
+		_KeroseneLampItem_ReduceFuel(lamp, hoursBurned);
+		if (unlimitedLampFuel)
+		{
+			lamp->fields.m_CurrentFuelLiters = prevFuel;
+		}
+	}
+
+	bool FlashlightItem_IsLit(FlashlightItem_o* flashlight)
+	{
+		bool lit = _FlashlightItem_IsLit(flashlight);
+		if (enableFlashlight)
+		{
+			lit = (flashlight->fields.m_State != (int32_t)TLD::FlashlightState::Off);
+		}
+		return lit;
+	}
+
+	float FlashlightItem_GetNormalizedCharge(FlashlightItem_o* flashlight)
+	{
+		float charge = _FlashlightItem_GetNormalizedCharge(flashlight);
+		if (enableFlashlight)
+		{
+			charge = 1.0f;
+		}
+		return charge;
+	}
+
+	float PlayerMovement_GetSnowDepthMovementMultiplier(PlayerMovement_o* player_movement)
+	{
+		float mult = _PlayerMovement_GetSnowDepthMovementMultiplier(player_movement);
+		if (speedHack)
+		{
+			mult = playerSpeedMultiplier;
+		}
+		return mult;
+	}
+}
+
+// ==========================================================================================
+void InitializeCheat(void* gModule)
+{
+	SetFunctionPointer(_Encoding_get_UTF8, gModule, 0x282AAD0);
+	SetFunctionPointer(_String_CreateStringFromEncoding, gModule, 0x2347C70);
+
+	SetFunctionPointer(_InterfaceManager_GetInstance, gModule, 0x13CCDF0);
+	SetFunctionPointer(_GameManager_GetInstance, gModule, 0xEDE9C0);
+
+	SetFunctionPointer(_Input_GetKey, gModule, 0xE00430);
+	SetFunctionPointer(_Input_GetKeyUp, gModule, 0xE00480);
+	SetFunctionPointer(_Input_GetKeyDown, gModule, 0xE004D0);
+
+	SetFunctionPointer(_vpFPSWeapon_SetDisableAimBreathing, gModule, 0x193C1C0);
+	SetFunctionPointer(_vpFPSWeapon_SetDisableAimSway, gModule, 0x193C250);
+	SetFunctionPointer(_vpFPSWeapon_SetDisableAimStamina, gModule, 0x193C2E0);
+	SetFunctionPointer(_vpFPSWeapon_SetDisableAimShake, gModule, 0x193C370);
+	SetFunctionPointer(_vpFPSWeapon_SetDisableDepthOfField, gModule, 0x193C400);
+
+	SetFunctionPointer(_GearManager_DestroyNextUpdate, gModule, 0x159D280);
+	SetFunctionPointer(_GearManager_DestroyMarkedObjects, gModule, 0x159D3F0);
+	SetFunctionPointer(_GearManager_Update, gModule, 0x159D5C0);
+	SetFunctionPointer(_GearManager_UpdateAll, gModule, 0x159D720);
+
+	SetFunctionPointer(_PlayerManager_GetControlMode, gModule, 0xE763C0);
+	SetFunctionPointer(_PlayerManager_SetControlMode, gModule, 0xE76490);
+	SetFunctionPointer(_PlayerManager_InstantiateItemInPlayerInventory, gModule, 0xE49D20);
+	SetFunctionPointer(_Panel_Inventory_IsEnabled, gModule, 0x1126B90);
+	SetFunctionPointer(_Panel_Inventory_MarkDirty, gModule, 0x1126B50);
+	SetFunctionPointer(_Panel_Subtitles_ShowSubtitlesForced, gModule, 0xFD4E80);
+
+	SetFunctionPointer(_GameManager_UpdateNotPaused, gModule, 0xEE56E0);
+	SetFunctionPointer(_HUDManager_ShouldHideCrossHairs, gModule, 0x148A5C0);
+	SetFunctionPointer(_PlayerManager_DoPositionCheck, gModule, 0xE5C730);
+	SetFunctionPointer(_BodyDamage_GetChanceKill, gModule, 0x12F7500);
+	SetFunctionPointer(_KeroseneLampItem_ReduceFuel, gModule, 0x103FDD0);
+	SetFunctionPointer(_FlashlightItem_IsLit, gModule, 0x109FF10);
+	SetFunctionPointer(_FlashlightItem_GetNormalizedCharge, gModule, 0x109FE40);
+	SetFunctionPointer(_PlayerMovement_GetSnowDepthMovementMultiplier, gModule, 0x10720E0);
+
+	// Install hooks
+	// ==========================================================================================
+	distormx_hook(reinterpret_cast<void**>(&_GameManager_UpdateNotPaused), &Cheat::GameManager_Update);
+	distormx_hook(reinterpret_cast<void**>(&_HUDManager_ShouldHideCrossHairs), &Cheat::HUDManager_ShouldHideCrossHairs);
+	distormx_hook(reinterpret_cast<void**>(&_PlayerManager_DoPositionCheck), &Cheat::PlayerManager_DoPositionCheck);
+	distormx_hook(reinterpret_cast<void**>(&_BodyDamage_GetChanceKill), &Cheat::BodyDamage_GetChanceKill);
+	distormx_hook(reinterpret_cast<void**>(&_KeroseneLampItem_ReduceFuel), &Cheat::KeroseneLampItem_ReduceFuel);
+	distormx_hook(reinterpret_cast<void**>(&_FlashlightItem_IsLit), &Cheat::FlashlightItem_IsLit);
+	distormx_hook(reinterpret_cast<void**>(&_FlashlightItem_GetNormalizedCharge), &Cheat::FlashlightItem_GetNormalizedCharge);
+	distormx_hook(reinterpret_cast<void**>(&_PlayerMovement_GetSnowDepthMovementMultiplier), &Cheat::PlayerMovement_GetSnowDepthMovementMultiplier);
+}
+
+void ReleaseCheat()
+{
+	// Remove hooks
+	distormx_unhook(&_GameManager_UpdateNotPaused);
+	distormx_unhook(&_HUDManager_ShouldHideCrossHairs);
+	distormx_unhook(&_PlayerManager_DoPositionCheck);
+	distormx_unhook(&_BodyDamage_GetChanceKill);
+	distormx_unhook(&_KeroseneLampItem_ReduceFuel);
+	distormx_unhook(&_FlashlightItem_IsLit);
+	distormx_unhook(&_FlashlightItem_GetNormalizedCharge);
+	distormx_unhook(&_PlayerMovement_GetSnowDepthMovementMultiplier);
+	distormx_destroy();
+
+	_GameManager_UpdateNotPaused = nullptr;
+	_HUDManager_ShouldHideCrossHairs = nullptr;
+	_PlayerManager_DoPositionCheck = nullptr;
+	_BodyDamage_GetChanceKill = nullptr;
+	_KeroseneLampItem_ReduceFuel = nullptr;
+	_FlashlightItem_IsLit = nullptr;
+	_FlashlightItem_GetNormalizedCharge = nullptr;
+	_PlayerMovement_GetSnowDepthMovementMultiplier = nullptr;
 }

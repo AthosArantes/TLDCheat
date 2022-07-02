@@ -1,28 +1,32 @@
+#include "cheat.h"
+
 // Exclude rarely-used stuff from Windows headers
 #define WIN32_LEAN_AND_MEAN
 
 // Windows Header Files
 #include <windows.h>
-#include "cheat.h"
 
-BOOL APIENTRY DllMain(HMODULE /*hModule*/, DWORD ul_reason_for_call, LPVOID /*lpReserved*/)
+BOOL APIENTRY DllMain(HMODULE hModule, DWORD dwReason, LPVOID lpReserved)
 {
-	HMODULE gameModule = GetModuleHandleA("GameAssembly.dll");
+	UNREFERENCED_PARAMETER(hModule);
+	UNREFERENCED_PARAMETER(lpReserved);
 
-	switch (ul_reason_for_call)
+	switch (dwReason)
 	{
 		case DLL_PROCESS_ATTACH:
-			[[fallthrough]];
+		{
+			InitializeCheat(GetModuleHandleA("GameAssembly.dll"));
+			return TRUE;
+		}
 		case DLL_THREAD_ATTACH:
-			Game::Cheat::Initialize(gameModule);
 			return TRUE;
 		case DLL_THREAD_DETACH:
-			break;
-		case DLL_PROCESS_DETACH:
-			Game::Cheat::Release();
 			return TRUE;
+		case DLL_PROCESS_DETACH:
+			ReleaseCheat();
+			return TRUE;
+		default:
+			return FALSE;
 	}
-
-	return FALSE;
 }
 

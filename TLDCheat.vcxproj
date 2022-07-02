@@ -22,13 +22,13 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v142</PlatformToolset>
+    <PlatformToolset>v143</PlatformToolset>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v142</PlatformToolset>
+    <PlatformToolset>v143</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
@@ -47,12 +47,12 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
     <OutDir>$(SolutionDir)bin\$(Configuration)_$(Platform)\</OutDir>
-    <IntDir>$(SolutionDir)intermediate\$(Configuration)_$(Platform)\</IntDir>
+    <IntDir>$(SolutionDir)obj\$(Configuration)_$(Platform)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
     <OutDir>$(SolutionDir)bin\$(Configuration)_$(Platform)\</OutDir>
-    <IntDir>$(SolutionDir)intermediate\$(Configuration)_$(Platform)\</IntDir>
+    <IntDir>$(SolutionDir)obj\$(Configuration)_$(Platform)\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -66,6 +66,7 @@
       <EnableModules>false</EnableModules>
       <AdditionalOptions>/Zc:__cplusplus %(AdditionalOptions)</AdditionalOptions>
       <ExceptionHandling>false</ExceptionHandling>
+      <AdditionalIncludeDirectories>$(SolutionDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -88,6 +89,7 @@
       <AdditionalOptions>/Zc:__cplusplus %(AdditionalOptions)</AdditionalOptions>
       <DebugInformationFormat>None</DebugInformationFormat>
       <ExceptionHandling>false</ExceptionHandling>
+      <AdditionalIncludeDirectories>$(SolutionDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -113,19 +115,7 @@
     <ClInclude Include="src\distormx\distormx.h" />
     <ClInclude Include="src\distormx\OS.h" />
     <ClInclude Include="src\cheat.h" />
-    <ClInclude Include="src\fmt\chrono.h" />
-    <ClInclude Include="src\fmt\color.h" />
-    <ClInclude Include="src\fmt\compile.h" />
-    <ClInclude Include="src\fmt\core.h" />
-    <ClInclude Include="src\fmt\format-inl.h" />
-    <ClInclude Include="src\fmt\format.h" />
-    <ClInclude Include="src\fmt\locale.h" />
-    <ClInclude Include="src\fmt\ostream.h" />
-    <ClInclude Include="src\fmt\posix.h" />
-    <ClInclude Include="src\fmt\printf.h" />
-    <ClInclude Include="src\fmt\ranges.h" />
     <ClInclude Include="src\TLD.h" />
-    <ClInclude Include="src\utils.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\distormx\distorm3\src\decoder.c" />
@@ -140,8 +130,6 @@
     <ClCompile Include="src\distormx\distormx.c" />
     <ClCompile Include="src\distormx\OS.c" />
     <ClCompile Include="src\cheat.cpp" />
-    <ClCompile Include="src\fmt\format.cc" />
-    <ClCompile Include="src\fmt\posix.cc" />
     <ClCompile Include="src\main.cpp" />
   </ItemGroup>
   <ItemGroup>

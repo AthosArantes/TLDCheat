@@ -51,7 +51,7 @@ END
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 1,78,0,63122
+ FILEVERSION 2,0,0,9144
  PRODUCTVERSION 1,0,0,0
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
@@ -68,10 +68,10 @@ BEGIN
         BLOCK "040904b0"
         BEGIN
             VALUE "FileDescription", "The Long Dark Cheat"
-            VALUE "FileVersion", "1.78.0.63122"
+            VALUE "FileVersion", "2.0.0.9144"
             VALUE "InternalName", "TLDCheat.dll"
             VALUE "OriginalFilename", "TLDCheat.dll"
-            VALUE "ProductVersion", "1.0.0.0"
+            VALUE "ProductVersion", "2.0.0.91441 S"
         END
     END
     BLOCK "VarFileInfo"

@@ -1,55 +1,51 @@
 # The Long Dark Cheat
-A small cheat for the game **The Long Dark** compatible with steam version v1.78.63122;\
+A small cheat for the game **The Long Dark** compatible with steam version 2.0.0.91441;\
 Using cheats will degrade gameplay experience.\
 Use at own risk.
 
 ## Features:
 - Always show crosshair;
-- Never degrade items;
 - One-Hit kill;
-- Steady camera;
-- Unlimited backpack weight;
-- Unlimited storage weight;
+- Steady camera (Greatly reduces aiming sway);
 - Unlimited lamp fuel;
-- Increase/Decrease item units in player inventory (Also works with water, liquids and lamp);
+- Increase/Decrease item units in player inventory;
 - Repair item in player inventory;
-- Place item anywhere;
-- Full map survey;
-- Speed hack (Up to 10x);
+- Remove items from player inventory;
+- Remove collision between items;
+- Allow flashlight to be turned on at any time;
+- Allow movement while aiming the revolver;
+- Speedhack (Up to 10x);
 
 ## How to use:
-First you will need to compile it (The cheat was compiled using Visual Studio 2019 compiler, tested and it is functional on Windows 7 x64 SP1). Then you will be able to inject the .dll when the game is running. Any basic injector will do.
+First you will need to compile it (The cheat was compiled using Visual Studio 2022, tested and it is functional on Windows 10).\
+Then you will be able to inject the .dll when the game is running. Any basic injector will do.
 
 **General cheats (Only works if you are not in Inventory panel):**
 |Cheat|Key|
 |--|--|
-|Toggle always show crosshair|KeyPad 0|
-|Toggle One-Hit kill|KeyPad 1|
-|Toggle never degrade items|KeyPad 2|
-|Toggle steady camera|KeyPad 3|
-|Toggle unlimited backpack|KeyPad 4|
-|Toggle unlimited storage|KeyPad 5|
-|Toggle unlimited lamp fuel|KeyPad 6|
-|Toggle place item anywhere|KeyPad 7|
-|Toggle full map survey|KeyPad 8|
-|Increase movement speed|KeyPad +|
-|Decrease movement speed|KeyPad -|
-|Disable ALL cheats|End|
+|Toggle steady camera|KeyPad 0|
+|Toggle always show crosshair|KeyPad 1|
+|Toggle item placement collision|KeyPad 2|
+|Toggle One-Hit kill|KeyPad 3|
+|Toggle unlimited lamp fuel|KeyPad 4|
+|Toggle flashlight use|KeyPad 5|
+|Toggle movement while aiming revolver|KeyPad 6|
+|Toggle speedhack|KeyPad 9|
+|Increase speedhack movement|KeyPad +|
+|Decrease speedhack movement|KeyPad -|
+|Quickly disable all cheats|End|
 
 **Inventory cheats (Only works if you are in the Inventory panel):**
 |Cheat|Key|
 |--|--|
+|Duplicate selected item (non-stackable items)|Insert|
+|Delete selected item|Delete|
 |Increase selected item count by 1|KeyPad +|
 |Decrease selected item count by 1|KeyPad -|
-|Increase selected item count by 5|**LeftShift** with **KeyPad +**|
-|Decrease selected item count by 5|**LeftShift** with **KeyPad -**|
 |Repair selected item|KeyPad *|
 
 **Notes:**
 - The inventory cheats does not work when inside a container (not implemented);
-- Non-stackable items (like the Emergency Stim) cannot be incremented/decremented;
-- Disabling all cheats (by pressing **End**) will remove all hooks. The only way to use cheats again is by injecting the .dll again;
 
 ## Libraries used:
-[distormx](https://github.com/gdabah/distormx)\
-[fmt](https://github.com/fmtlib/fmt)
+[distormx](https://github.com/gdabah/distormx)
