@@ -1,4 +1,7 @@
 #pragma once
 
-void InitializeCheat(void* gameAssemblyModule);
-void ReleaseCheat();
+namespace TLDCheat
+{
+	void Initialize();
+	void Release();
+}
