@@ -26,6 +26,10 @@ struct GameAssemblyModule
 	il2cpp::function<void> GearManager_Update {0xB69F20};
 	il2cpp::function<void> GearManager_UpdateAll {0xB6A090};
 
+	il2cpp::function<void, vp_FPSCamera_o*, UnityEngine_Vector3_o* /*velocity*/> vp_FPSCamera_DoSwaying {0x4F3290};
+	il2cpp::function<void, vp_FPSCamera_o*, float /*speed*/, float /*time*/> vp_FPSCamera_DoBob {0x4F2CF0};
+	il2cpp::function<UnityEngine_Vector2_o, vp_FPSCamera_o*, float /*speed*/, float /*time*/> vp_FPSCamera_RandomSway {0x4F26F0};
+
 	il2cpp::function<TLD::PlayerControlMode, PlayerManager_o*> PlayerManager_GetControlMode {0xBDB400};
 	il2cpp::function<void, PlayerManager_o*, TLD::PlayerControlMode> PlayerManager_SetControlMode {0xBDB480};
 	il2cpp::function<GearItem_o*, PlayerManager_o*, GearItem_o*, int32_t /*numUnits*/, bool /*enableNotificationFlag*/> PlayerManager_InstantiateItemInPlayerInventory {0xC069D0};

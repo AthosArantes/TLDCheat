@@ -24,6 +24,10 @@ void GameAssemblyModule::Initialize(void* baseAddress)
 	ADD_MODULE_ADDRESS(GearManager_Update);
 	ADD_MODULE_ADDRESS(GearManager_UpdateAll);
 
+	ADD_MODULE_ADDRESS(vp_FPSCamera_DoSwaying);
+	ADD_MODULE_ADDRESS(vp_FPSCamera_DoBob);
+	ADD_MODULE_ADDRESS(vp_FPSCamera_RandomSway);
+
 	ADD_MODULE_ADDRESS(PlayerManager_GetControlMode);
 	ADD_MODULE_ADDRESS(PlayerManager_SetControlMode);
 	ADD_MODULE_ADDRESS(PlayerManager_InstantiateItemInPlayerInventory);

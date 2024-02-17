@@ -9,14 +9,17 @@
 
 namespace TLDCheat
 {
-	bool placeAnywhere = false;
-	bool oneHitKill = false;
-	bool unlimitedLampFuel = false;
-	bool enableFlashlight = false;
-	bool allowRevolverAimMove = false;
+	static bool InventoryPanelEnabled = false;
 
-	bool speedHack = false;
-	float playerSpeedMultiplier = 1.0f;
+	static bool steadyCamera = false;
+	static bool placeAnywhere = false;
+	static bool oneHitKill = false;
+	static bool unlimitedLampFuel = false;
+	static bool enableFlashlight = false;
+	static bool allowRevolverAimMove = false;
+
+	static bool speedHack = false;
+	static float playerSpeedMultiplier = 1.0f;
 
 	// ==========================================================================================
 	void ShowMessage(std::string_view message)
@@ -31,19 +34,29 @@ namespace TLDCheat
 		// Call the original update of the game
 		GameAssembly.GameManager_UpdateNotPaused(game_manager);
 
-		// Place anywhere cheat
+		if (InventoryPanelEnabled) {
+			return;
+		}
+
+		// Steady camera
+		if (GameAssembly.Input_GetKeyDown(UnityEngine::KeyCode::Keypad0)) {
+			steadyCamera = !steadyCamera;
+			ShowMessage(steadyCamera ? u8"Steady camera enabled" : u8"Steady camera disabled");
+		}
+
+		// Place anywhere
 		if (GameAssembly.Input_GetKeyDown(UnityEngine::KeyCode::Keypad1)) {
 			placeAnywhere = !placeAnywhere;
 			ShowMessage(placeAnywhere ? u8"Collision between items disabled" : u8"Collision between items enabled");
 		}
 
-		// Toggle one-hit kill cheat
+		// Toggle one-hit kill
 		if (GameAssembly.Input_GetKeyDown(UnityEngine::KeyCode::Keypad2)) {
 			oneHitKill = !oneHitKill;
 			ShowMessage(oneHitKill ? u8"One-hit kill activated" : u8"One-hit kill deactivated");
 		}
 
-		// Unlimited lamp fuel cheat
+		// Unlimited lamp fuel
 		if (GameAssembly.Input_GetKeyDown(UnityEngine::KeyCode::Keypad3)) {
 			unlimitedLampFuel = !unlimitedLampFuel;
 			ShowMessage(unlimitedLampFuel ? u8"Unlimited lamp fuel activated" : u8"Unlimited lamp fuel deactivated");
@@ -74,10 +87,9 @@ namespace TLDCheat
 
 				std::string buffer;
 				{
-					const char* fmt = "Speedhack set to %dX";
+					const char* fmt = "Speedhack set to %dx";
 					int szbuf = snprintf(nullptr, 0, fmt, static_cast<int>(playerSpeedMultiplier));
 					buffer.resize(szbuf + 1);
-					memset(buffer.data(), 0, buffer.size());
 					snprintf(buffer.data(), szbuf, fmt, static_cast<int>(playerSpeedMultiplier));
 				}
 				ShowMessage(buffer);
@@ -93,7 +105,8 @@ namespace TLDCheat
 		GameManager_o* const game_manager = GameAssembly.GameManager_Instance();
 		PlayerManager_o* const player_manager = game_manager->klass->static_fields->m_PlayerManager;
 
-		if (!GameAssembly.Panel_Inventory_IsEnabled(panel_inventory)) {
+		InventoryPanelEnabled = GameAssembly.Panel_Inventory_IsEnabled(panel_inventory);
+		if (!InventoryPanelEnabled) {
 			return;
 		}
 
@@ -136,18 +149,19 @@ namespace TLDCheat
 
 			if (liquidItem) {
 				const float capacity = liquidItem->fields.m_LiquidCapacityLiters;
-
 				float& liters = liquidItem->fields.m_LiquidLiters;
-				liters += capacity * 0.1f * static_cast<float>(modifier);
 
-				if (liters > capacity) {
-					liters = capacity;
-
+				if (modifier > 0 && liters >= capacity) {
 					// Clone this item if reached it's limit
 					GameAssembly.PlayerManager_InstantiateItemInPlayerInventory(player_manager, gearItem, 1, false);
 
-				} else if (liters <= 0.0f) {
-					destroy = true;
+				} else {
+					liters += capacity * 0.1f * static_cast<float>(modifier);
+					if (liters > capacity) {
+						liters = capacity;
+					} else if (liters <= 0.0f) {
+						destroy = true;
+					}
 				}
 
 			} else if (stackableItem) {
@@ -222,6 +236,30 @@ namespace TLDCheat
 		return speedHack ? playerSpeedMultiplier : GameAssembly.PlayerMovement_GetSnowDepthMovementMultiplier(player_movement);
 	}
 
+	void vp_FPSCamera_DoSwaying(vp_FPSCamera_o* camera, UnityEngine_Vector3_o* velocity)
+	{
+		if (!steadyCamera) {
+			GameAssembly.vp_FPSCamera_DoSwaying(camera, velocity);
+		}
+	}
+
+	void vp_FPSCamera_DoBob(vp_FPSCamera_o* camera, float speed, float time)
+	{
+		if (!steadyCamera) {
+			GameAssembly.vp_FPSCamera_DoBob(camera, speed, time);
+		}
+	}
+
+	UnityEngine_Vector2_o vp_FPSCamera_RandomSway(vp_FPSCamera_o* camera, float speed, float time)
+	{
+		UnityEngine_Vector2_o sway = GameAssembly.vp_FPSCamera_RandomSway(camera, speed, time);
+		if (steadyCamera) {
+			sway.fields.x = 0.0f;
+			sway.fields.y = 0.0f;
+		}
+		return sway;
+	}
+
 	// ==========================================================================================
 	void Initialize()
 	{
@@ -235,6 +273,9 @@ namespace TLDCheat
 		distormx_hook(reinterpret_cast<void**>(&GameAssembly.FlashlightItem_IsLit), &FlashlightItem_IsLit);
 		distormx_hook(reinterpret_cast<void**>(&GameAssembly.FlashlightItem_GetNormalizedCharge), &FlashlightItem_GetNormalizedCharge);
 		distormx_hook(reinterpret_cast<void**>(&GameAssembly.PlayerMovement_GetSnowDepthMovementMultiplier), &PlayerMovement_GetSnowDepthMovementMultiplier);
+		distormx_hook(reinterpret_cast<void**>(&GameAssembly.vp_FPSCamera_DoSwaying), &vp_FPSCamera_DoSwaying);
+		distormx_hook(reinterpret_cast<void**>(&GameAssembly.vp_FPSCamera_DoBob), &vp_FPSCamera_DoBob);
+		distormx_hook(reinterpret_cast<void**>(&GameAssembly.vp_FPSCamera_RandomSway), &vp_FPSCamera_RandomSway);
 	}
 
 	void Release()
@@ -249,6 +290,9 @@ namespace TLDCheat
 		distormx_unhook(&GameAssembly.FlashlightItem_IsLit);
 		distormx_unhook(&GameAssembly.FlashlightItem_GetNormalizedCharge);
 		distormx_unhook(&GameAssembly.PlayerMovement_GetSnowDepthMovementMultiplier);
+		distormx_unhook(&GameAssembly.vp_FPSCamera_DoSwaying);
+		distormx_unhook(&GameAssembly.vp_FPSCamera_DoBob);
+		distormx_unhook(&GameAssembly.vp_FPSCamera_RandomSway);
 		distormx_destroy();
 	}
 }

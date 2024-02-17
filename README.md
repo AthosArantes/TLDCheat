@@ -4,6 +4,7 @@ Using cheats will degrade gameplay experience.\
 Use at own risk.
 
 ## Features:
+- Steady camera;
 - One-Hit kill;
 - Unlimited lamp fuel;
 - Increase/Decrease item units in player inventory;
@@ -21,6 +22,7 @@ Then you will be able to inject the .dll when the game is running. Any basic inj
 **General cheats:**
 |Cheat|Key|
 |--|--|
+|Toggle steady camera|KeyPad 0|
 |Toggle item placement collision|KeyPad 1|
 |Toggle One-Hit kill|KeyPad 2|
 |Toggle unlimited lamp fuel|KeyPad 3|
@@ -29,7 +31,6 @@ Then you will be able to inject the .dll when the game is running. Any basic inj
 |Toggle speedhack|KeyPad 9|
 |Increase speedhack movement|KeyPad +|
 |Decrease speedhack movement|KeyPad -|
-|Quickly disable all cheats|End|
 
 **Inventory cheats (Only works if you are in the Inventory panel):**
 |Cheat|Key|
